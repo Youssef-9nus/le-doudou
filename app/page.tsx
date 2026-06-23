@@ -1,10 +1,38 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { produits } from "@/lib/produits";
 import CarteProduit from "@/components/CarteProduit";
+import { supabase } from "@/lib/supabase";
+
+interface Produit {
+  id: string;
+  nom: string;
+  prix: number;
+  categorie: string;
+  couleurs: string[];
+  tailles: string[];
+  description: string;
+  nouveaute: boolean;
+  soldOut: boolean;
+  image: string;
+  stock: number;
+}
 
 export default function Home() {
-  const nouveautes = produits.filter((p) => p.nouveaute).slice(0, 4);
-  const bestsellers = produits.filter((p) => !p.nouveaute).slice(0, 4);
+  const [nouveautes, setNouveautes] = useState<Produit[]>([]);
+  const [bestsellers, setBestsellers] = useState<Produit[]>([]);
+
+  useEffect(() => {
+    const charger = async () => {
+      const { data } = await supabase.from("produits").select("*");
+      if (data) {
+        setNouveautes(data.filter((p) => p.nouveaute).slice(0, 4));
+        setBestsellers(data.filter((p) => !p.nouveaute).slice(0, 4));
+      }
+    };
+    charger();
+  }, []);
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -40,7 +68,6 @@ export default function Home() {
             Tout voir →
           </Link>
         </div>
-        {/* 2 colonnes mobile, 4 colonnes desktop */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
           {nouveautes.map((p) => (
             <CarteProduit key={p.id} produit={p} />
@@ -72,15 +99,12 @@ export default function Home() {
             Tout voir →
           </Link>
         </div>
-        {/* 2 colonnes mobile, 4 colonnes desktop */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
           {bestsellers.map((p) => (
             <CarteProduit key={p.id} produit={p} />
           ))}
         </div>
       </section>
-
-      
     </main>
   );
 }

@@ -1,12 +1,38 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import CarteProduit from "@/components/CarteProduit";
-import { produits, categories } from "@/lib/produits";
+import { supabase } from "@/lib/supabase";
+import { categories } from "@/lib/produits";
+
+interface Produit {
+  id: string;
+  nom: string;
+  prix: number;
+  categorie: string;
+  couleurs: string[];
+  tailles: string[];
+  description: string;
+  nouveaute: boolean;
+  soldOut: boolean;
+  image: string;
+  stock: number;
+}
 
 export default function BoutiquePage() {
+  const [produits, setProduits] = useState<Produit[]>([]);
+  const [loading, setLoading] = useState(true);
   const [categorieActive, setCategorieActive] = useState("tous");
   const [tri, setTri] = useState<"defaut" | "prix-asc" | "prix-desc" | "nouveautes">("defaut");
+
+  useEffect(() => {
+    const charger = async () => {
+      const { data } = await supabase.from("produits").select("*");
+      if (data) setProduits(data);
+      setLoading(false);
+    };
+    charger();
+  }, []);
 
   const produitsFiltres = useMemo(() => {
     let liste = [...produits];
@@ -28,7 +54,7 @@ export default function BoutiquePage() {
     }
 
     return liste;
-  }, [categorieActive, tri]);
+  }, [produits, categorieActive, tri]);
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -48,7 +74,6 @@ export default function BoutiquePage() {
       {/* Filtres + Tri */}
       <div className="sticky top-[73px] z-40 bg-black/95 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-          {/* Catégories */}
           <div className="flex gap-2 flex-wrap">
             {categories.map((cat) => (
               <button
@@ -64,8 +89,6 @@ export default function BoutiquePage() {
               </button>
             ))}
           </div>
-
-          {/* Tri */}
           <select
             value={tri}
             onChange={(e) => setTri(e.target.value as typeof tri)}
@@ -81,7 +104,11 @@ export default function BoutiquePage() {
 
       {/* Grille produits */}
       <div className="max-w-7xl mx-auto px-6 py-12">
-        {produitsFiltres.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-32 text-white/30">
+            <p>Chargement...</p>
+          </div>
+        ) : produitsFiltres.length === 0 ? (
           <div className="text-center py-32 text-white/30">
             <p className="text-lg">Aucun produit dans cette catégorie.</p>
           </div>
@@ -93,8 +120,6 @@ export default function BoutiquePage() {
           </div>
         )}
       </div>
-
-      
     </main>
   );
 }
