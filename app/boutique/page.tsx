@@ -94,12 +94,7 @@ export default function BoutiquePage() {
         )}
       </div>
 
-      {/* Footer bannière */}
-      <section className="border-t border-white/10 py-16 text-center">
-        <p className="text-white/20 text-xs tracking-[0.4em] uppercase">
-          Livraison dans toute la Côte d&apos;Ivoire · Paiement Mobile Money
-        </p>
-      </section>
+      
     </main>
   );
 }
