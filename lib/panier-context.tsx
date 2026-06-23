@@ -14,6 +14,7 @@ type PanierContextType = {
   articles: ArticlePanier[];
   ajouterAuPanier: (produit: Produit, couleur: string, taille: string) => void;
   retirerDuPanier: (id: string, couleur: string, taille: string) => void;
+  viderPanier: () => void;
   total: number;
   nombreArticles: number;
 };
@@ -62,6 +63,10 @@ export function PanierProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const viderPanier = useCallback(() => {
+    setArticles([]);
+  }, []);
+
   const total = articles.reduce(
     (sum, a) => sum + a.produit.prix * a.quantite,
     0
@@ -70,7 +75,7 @@ export function PanierProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <PanierContext.Provider
-      value={{ articles, ajouterAuPanier, retirerDuPanier, total, nombreArticles }}
+      value={{ articles, ajouterAuPanier, retirerDuPanier, viderPanier, total, nombreArticles }}
     >
       {children}
     </PanierContext.Provider>
