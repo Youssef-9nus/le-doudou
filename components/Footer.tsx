@@ -64,6 +64,14 @@ export default function Footer() {
           Livraison dans toute la Côte d&apos;Ivoire · Paiement Mobile Money
         </p>
 
+        {/* Lien admin discret */}
+        <Link
+          href="/admin"
+          className="text-white/10 hover:text-white/30 text-[10px] transition-colors duration-300"
+        >
+          ·
+        </Link>
+
       </div>
     </footer>
   );
