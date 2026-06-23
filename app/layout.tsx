@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { PanierProvider } from "@/lib/panier-context";
 
 const geistSans = Geist({
@@ -32,7 +33,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-black">
         <PanierProvider>
           <Navbar />
-          {children}
+          <div className="flex-1">
+            {children}
+          </div>
+          <Footer />
         </PanierProvider>
       </body>
     </html>

@@ -27,16 +27,10 @@ export default function Navbar() {
 
         {/* Nav desktop */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link
-            href="/"
-            className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase"
-          >
+          <Link href="/" className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase">
             Accueil
           </Link>
-          <Link
-            href="/boutique"
-            className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase"
-          >
+          <Link href="/boutique" className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase">
             Boutique
           </Link>
         </nav>
@@ -44,10 +38,7 @@ export default function Navbar() {
         {/* Droite : panier + hamburger */}
         <div className="flex items-center gap-4">
           <Link href="/panier" className="relative group">
-            <ShoppingBag
-              size={22}
-              className="text-white/70 group-hover:text-white transition-colors"
-            />
+            <ShoppingBag size={22} className="text-white/70 group-hover:text-white transition-colors" />
             {nombreArticles > 0 && (
               <span className="absolute -top-2 -right-2 bg-white text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                 {nombreArticles}
@@ -55,7 +46,6 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* Bouton hamburger (mobile uniquement) */}
           <button
             className="md:hidden text-white/70 hover:text-white transition-colors"
             onClick={() => setMenuOuvert(!menuOuvert)}
@@ -69,25 +59,13 @@ export default function Navbar() {
       {/* Menu mobile déroulant */}
       {menuOuvert && (
         <div className="md:hidden bg-black border-t border-white/10 px-4 py-6 flex flex-col gap-6">
-          <Link
-            href="/"
-            onClick={() => setMenuOuvert(false)}
-            className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase"
-          >
+          <Link href="/" onClick={() => setMenuOuvert(false)} className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase">
             Accueil
           </Link>
-          <Link
-            href="/boutique"
-            onClick={() => setMenuOuvert(false)}
-            className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase"
-          >
+          <Link href="/boutique" onClick={() => setMenuOuvert(false)} className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase">
             Boutique
           </Link>
-          <Link
-            href="/panier"
-            onClick={() => setMenuOuvert(false)}
-            className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase"
-          >
+          <Link href="/panier" onClick={() => setMenuOuvert(false)} className="text-sm tracking-widest text-white/60 hover:text-white transition-colors uppercase">
             Panier {nombreArticles > 0 && `(${nombreArticles})`}
           </Link>
         </div>

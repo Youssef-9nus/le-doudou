@@ -140,9 +140,12 @@ export default function PanierPage() {
                 </div>
               </div>
 
-              <button className="w-full bg-white text-black font-semibold py-4 rounded-lg hover:bg-white/90 transition-colors tracking-wide">
+              <Link
+                href="/checkout"
+                className="w-full bg-white text-black font-semibold py-4 rounded-lg hover:bg-white/90 transition-colors tracking-wide flex items-center justify-center"
+              >
                 Commander
-              </button>
+              </Link>
 
               <p className="text-white/30 text-xs text-center mt-4">
                 Paiement par Mobile Money · Orange · Wave · MTN
