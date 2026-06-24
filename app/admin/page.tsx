@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
@@ -43,6 +43,12 @@ type ChampProduit = {
   type: "text" | "number";
   disabled?: boolean;
 };
+
+const nettoyerListe = (valeur: string) =>
+  valeur
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -104,7 +110,7 @@ export default function AdminPage() {
       .upload(fileName, file, { upsert: true });
 
     if (error) {
-      setMessage("❌ Erreur upload : " + error.message);
+      setMessage("âŒ Erreur upload : " + error.message);
       return null;
     }
 
@@ -112,7 +118,7 @@ export default function AdminPage() {
     return data.publicUrl;
   };
 
-  // Upload de plusieurs images sélectionnées d'un coup (galerie multi-sélection)
+  // Upload de plusieurs images sÃ©lectionnÃ©es d'un coup (galerie multi-sÃ©lection)
   const uploadImages = async (files: FileList) => {
     setUploading(true);
     setMessage("");
@@ -137,7 +143,7 @@ export default function AdminPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) uploadImages(files);
-    // reset pour pouvoir re-sélectionner les mêmes fichiers si besoin
+    // reset pour pouvoir re-sÃ©lectionner les mÃªmes fichiers si besoin
     e.target.value = "";
   };
 
@@ -164,6 +170,20 @@ export default function AdminPage() {
     });
   };
 
+  const modifierCouleurs = (valeur: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      couleurs: nettoyerListe(valeur),
+    }));
+  };
+
+  const modifierTailles = (valeur: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      tailles: nettoyerListe(valeur),
+    }));
+  };
+
   const ouvrirEdition = (produit: Produit) => {
     setModalProduit(produit);
     setFormData({ ...produit });
@@ -179,7 +199,7 @@ export default function AdminPage() {
       categorie: "",
       couleurs: [],
       tailles: ["XS", "S", "M", "L", "XL"],
-      description: "Un essentiel intemporel pour compléter votre garde-robe.",
+      description: "Un essentiel intemporel pour complÃ©ter votre garde-robe.",
       nouveaute: false,
       soldout: false,
       images: [],
@@ -218,9 +238,9 @@ export default function AdminPage() {
     if (nouveauProduit) {
       const { error } = await supabase.from("produits").insert([produitASauvegarder]);
       if (error) {
-        setMessage("❌ Erreur : " + error.message);
+        setMessage("âŒ Erreur : " + error.message);
       } else {
-        setMessage("✅ Produit ajouté !");
+        setMessage("âœ… Produit ajoutÃ© !");
         setModalProduit(null);
         chargerProduits();
       }
@@ -230,9 +250,9 @@ export default function AdminPage() {
         .update(produitASauvegarder)
         .eq("id", id);
       if (error) {
-        setMessage("❌ Erreur : " + error.message);
+        setMessage("âŒ Erreur : " + error.message);
       } else {
-        setMessage("✅ Produit mis à jour !");
+        setMessage("âœ… Produit mis Ã  jour !");
         setModalProduit(null);
         chargerProduits();
       }
@@ -303,7 +323,7 @@ export default function AdminPage() {
           <h1 className="text-2xl font-bold tracking-tight">Administration</h1>
         </div>
         <button onClick={() => setAuthenticated(false)} className="text-white/30 text-xs tracking-widest uppercase hover:text-white transition-colors">
-          Déconnexion
+          DÃ©connexion
         </button>
       </div>
 
@@ -360,7 +380,7 @@ export default function AdminPage() {
                   <div className="border-t border-white/5 pt-3 space-y-1">
                     {c.produits.map((p, i) => (
                       <p key={i} className="text-white/50 text-sm">
-                        {p.nom} × {p.quantite} — {p.taille} — {p.couleur}
+                        {p.nom} Ã— {p.quantite} â€” {p.taille} â€” {p.couleur}
                       </p>
                     ))}
                   </div>
@@ -375,10 +395,10 @@ export default function AdminPage() {
                     className="bg-white/5 border border-white/10 text-white/60 text-xs px-3 py-1 rounded-lg focus:outline-none cursor-pointer"
                   >
                     <option value="en_attente" className="bg-black">En attente</option>
-                    <option value="confirme" className="bg-black">Confirmé</option>
-                    <option value="expedie" className="bg-black">Expédié</option>
-                    <option value="livre" className="bg-black">Livré</option>
-                    <option value="annule" className="bg-black">Annulé</option>
+                    <option value="confirme" className="bg-black">ConfirmÃ©</option>
+                    <option value="expedie" className="bg-black">ExpÃ©diÃ©</option>
+                    <option value="livre" className="bg-black">LivrÃ©</option>
+                    <option value="annule" className="bg-black">AnnulÃ©</option>
                   </select>
                 </div>
               </div>
@@ -423,7 +443,7 @@ export default function AdminPage() {
                       <p className="font-bold text-sm">{p.prix.toLocaleString("fr-FR")} FCFA</p>
                     </div>
                     <div className="flex gap-2 text-xs">
-                      {p.nouveaute && <span className="bg-white/10 text-white/60 px-2 py-0.5 rounded-full">Nouveauté</span>}
+                      {p.nouveaute && <span className="bg-white/10 text-white/60 px-2 py-0.5 rounded-full">NouveautÃ©</span>}
                       {p.soldout && <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">Sold Out</span>}
                     </div>
                     <div className="flex gap-2 pt-1">
@@ -506,7 +526,7 @@ export default function AdminPage() {
                 className="w-full h-28 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-colors relative"
               >
                 <div className="text-center">
-                  <p className="text-white/40 text-2xl mb-1">📷</p>
+                  <p className="text-white/40 text-2xl mb-1">ðŸ“·</p>
                   <p className="text-white/30 text-xs">Ajouter une ou plusieurs photos</p>
                   <p className="text-white/20 text-xs mt-1">Galerie ou appareil photo</p>
                 </div>
@@ -526,11 +546,43 @@ export default function AdminPage() {
               />
             </div>
 
+            <div>
+              <label className="text-white/40 text-xs tracking-widest uppercase block mb-1">
+                Couleurs disponibles
+              </label>
+              <input
+                type="text"
+                value={(formData.couleurs || []).join(", ")}
+                onChange={(e) => modifierCouleurs(e.target.value)}
+                placeholder="Noir, Blanc, Rouge"
+                className="w-full bg-white/5 border border-white/10 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:border-white/30 placeholder:text-white/20"
+              />
+              <p className="text-white/25 text-xs mt-1">
+                Separe les couleurs avec une virgule.
+              </p>
+            </div>
+
+            <div>
+              <label className="text-white/40 text-xs tracking-widest uppercase block mb-1">
+                Tailles disponibles
+              </label>
+              <input
+                type="text"
+                value={(formData.tailles || []).join(", ")}
+                onChange={(e) => modifierTailles(e.target.value)}
+                placeholder="XS, S, M, L, XL"
+                className="w-full bg-white/5 border border-white/10 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:border-white/30 placeholder:text-white/20"
+              />
+              <p className="text-white/25 text-xs mt-1">
+                Separe les tailles avec une virgule.
+              </p>
+            </div>
+
             {([
               { label: "ID (ex: article_10)", key: "id", type: "text", disabled: !nouveauProduit },
               { label: "Nom", key: "nom", type: "text" },
               { label: "Prix (FCFA)", key: "prix", type: "number" },
-              { label: "Catégorie", key: "categorie", type: "text" },
+              { label: "CatÃ©gorie", key: "categorie", type: "text" },
               { label: "Description", key: "description", type: "text" },
               { label: "Stock", key: "stock", type: "number" },
             ] satisfies ChampProduit[]).map((field) => (
@@ -558,7 +610,7 @@ export default function AdminPage() {
                   checked={formData.nouveaute || false}
                   onChange={(e) => setFormData((prev) => ({ ...prev, nouveaute: e.target.checked }))}
                 />
-                Nouveauté
+                NouveautÃ©
               </label>
               <label className="flex items-center gap-2 text-sm text-white/60 cursor-pointer">
                 <input
@@ -591,3 +643,4 @@ export default function AdminPage() {
     </div>
   );
 }
+
