@@ -5,19 +5,22 @@ import Image from "next/image";
 import { Produit, formaterPrix } from "@/lib/produits";
 
 export default function CarteProduit({ produit }: { produit: Produit }) {
+  const imagePrincipale =
+    produit.images && produit.images.length > 0
+      ? produit.images[0]
+      : `/produits/${produit.id}.jpeg`;
+
   return (
     <Link href={`/boutique/${produit.id}`} className="group block">
       {/* Image */}
       <div className="relative aspect-[3/4] bg-zinc-900 rounded-lg overflow-hidden mb-2 sm:mb-4">
-        {produit.images?.[0] && (
-          <Image
-            src={produit.images[0]}
-            alt={produit.nom}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 768px) 50vw, 25vw"
-          />
-        )}
+        <Image
+          src={imagePrincipale}
+          alt={produit.nom}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          sizes="(max-width: 768px) 50vw, 25vw"
+        />
 
         {/* Badges */}
         <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-2 z-10">
@@ -26,7 +29,7 @@ export default function CarteProduit({ produit }: { produit: Produit }) {
               Nouveau
             </span>
           )}
-          {produit.soldOut && (
+          {produit.soldout && (
             <span className="bg-zinc-700 text-white text-[9px] sm:text-[10px] font-bold tracking-widest px-1.5 sm:px-2 py-0.5 sm:py-1 uppercase">
               Épuisé
             </span>

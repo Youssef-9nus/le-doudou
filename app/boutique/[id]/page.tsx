@@ -18,8 +18,8 @@ type Produit = {
   couleurs: string[];
   tailles: string[];
   images: string[];
-  nouveaute?: boolean;
-  soldout?: boolean;
+  nouveaute: boolean;
+  soldout: boolean;
 };
 
 export default function ProduitPage({

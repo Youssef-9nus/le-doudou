@@ -17,18 +17,32 @@ interface Produit {
   stock: number;
 }
 
+interface ProduitCommande {
+  nom?: string;
+  quantite?: number;
+  taille?: string;
+  couleur?: string;
+}
+
 interface Commande {
   id: string;
   created_at: string;
   client_nom: string;
   client_telephone: string;
   client_adresse: string;
-  produits: any[];
+  produits: ProduitCommande[];
   total: number;
   statut: string;
 }
 
 const PASSWORD = "doudou2025";
+
+type ChampProduit = {
+  label: string;
+  key: keyof Pick<Produit, "id" | "nom" | "prix" | "categorie" | "description" | "stock">;
+  type: "text" | "number";
+  disabled?: boolean;
+};
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -56,13 +70,6 @@ export default function AdminPage() {
     }
   };
 
-  useEffect(() => {
-    if (authenticated) {
-      chargerProduits();
-      chargerCommandes();
-    }
-  }, [authenticated]);
-
   const chargerProduits = async () => {
     setLoading(true);
     const { data } = await supabase.from("produits").select("*").order("id");
@@ -77,6 +84,15 @@ export default function AdminPage() {
       .order("created_at", { ascending: false });
     if (data) setCommandes(data);
   };
+
+  useEffect(() => {
+    if (authenticated) {
+      void Promise.resolve().then(() => {
+        chargerProduits();
+        chargerCommandes();
+      });
+    }
+  }, [authenticated]);
 
   // Upload d'une seule image -> renvoie l'URL publique
   const uploadUneImage = async (file: File): Promise<string | null> => {
@@ -99,19 +115,23 @@ export default function AdminPage() {
   // Upload de plusieurs images sélectionnées d'un coup (galerie multi-sélection)
   const uploadImages = async (files: FileList) => {
     setUploading(true);
+    setMessage("");
     const urls: string[] = [];
 
-    for (const file of Array.from(files)) {
-      const url = await uploadUneImage(file);
-      if (url) urls.push(url);
-    }
+    try {
+      for (const file of Array.from(files)) {
+        const url = await uploadUneImage(file);
+        if (url) urls.push(url);
+      }
 
-    setFormData((prev) => ({
-      ...prev,
-      images: [...(prev.images || []), ...urls],
-    }));
-    setPreviewImages((prev) => [...prev, ...urls]);
-    setUploading(false);
+      setFormData((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...urls],
+      }));
+      setPreviewImages((prev) => [...prev, ...urls]);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,9 +191,32 @@ export default function AdminPage() {
   };
 
   const sauvegarderProduit = async () => {
+    const id = formData.id?.trim();
+    const nom = formData.nom?.trim();
+    const categorie = formData.categorie?.trim();
+
+    if (!id || !nom || !categorie) {
+      setMessage("Remplis au minimum l'ID, le nom et la categorie.");
+      return;
+    }
+
     setSaving(true);
+    setMessage("");
+
+    const produitASauvegarder = {
+      ...formData,
+      id,
+      nom,
+      categorie,
+      prix: Number(formData.prix) || 0,
+      stock: Number(formData.stock) || 0,
+      couleurs: formData.couleurs && formData.couleurs.length > 0 ? formData.couleurs : ["Noir"],
+      tailles: formData.tailles && formData.tailles.length > 0 ? formData.tailles : ["XS", "S", "M", "L", "XL"],
+      images: formData.images || [],
+    };
+
     if (nouveauProduit) {
-      const { error } = await supabase.from("produits").insert([formData]);
+      const { error } = await supabase.from("produits").insert([produitASauvegarder]);
       if (error) {
         setMessage("❌ Erreur : " + error.message);
       } else {
@@ -184,8 +227,8 @@ export default function AdminPage() {
     } else {
       const { error } = await supabase
         .from("produits")
-        .update(formData)
-        .eq("id", formData.id);
+        .update(produitASauvegarder)
+        .eq("id", id);
       if (error) {
         setMessage("❌ Erreur : " + error.message);
       } else {
@@ -315,7 +358,7 @@ export default function AdminPage() {
                 </div>
                 {c.produits && (
                   <div className="border-t border-white/5 pt-3 space-y-1">
-                    {c.produits.map((p: any, i: number) => (
+                    {c.produits.map((p, i) => (
                       <p key={i} className="text-white/50 text-sm">
                         {p.nom} × {p.quantite} — {p.taille} — {p.couleur}
                       </p>
@@ -412,6 +455,12 @@ export default function AdminPage() {
               {nouveauProduit ? "Nouveau produit" : "Modifier le produit"}
             </h2>
 
+            {message && (
+              <div className="text-sm text-white/80 border border-white/10 rounded-xl px-4 py-3">
+                {message}
+              </div>
+            )}
+
             {/* Upload photos (plusieurs) */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -477,20 +526,20 @@ export default function AdminPage() {
               />
             </div>
 
-            {[
+            {([
               { label: "ID (ex: article_10)", key: "id", type: "text", disabled: !nouveauProduit },
               { label: "Nom", key: "nom", type: "text" },
               { label: "Prix (FCFA)", key: "prix", type: "number" },
               { label: "Catégorie", key: "categorie", type: "text" },
               { label: "Description", key: "description", type: "text" },
               { label: "Stock", key: "stock", type: "number" },
-            ].map((field) => (
+            ] satisfies ChampProduit[]).map((field) => (
               <div key={field.key}>
                 <label className="text-white/40 text-xs tracking-widest uppercase block mb-1">{field.label}</label>
                 <input
                   type={field.type}
                   disabled={field.disabled}
-                  value={(formData as any)[field.key] || ""}
+                  value={formData[field.key]?.toString() || ""}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,

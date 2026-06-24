@@ -14,8 +14,8 @@ interface Produit {
   tailles: string[];
   description: string;
   nouveaute: boolean;
-  soldOut: boolean;
-  image: string;
+  soldout: boolean;
+  images: string[];
   stock: number;
 }
 

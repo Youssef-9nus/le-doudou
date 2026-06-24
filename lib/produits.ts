@@ -7,8 +7,8 @@ export interface Produit {
   categorie: string;
   description: string;
   nouveaute: boolean;
-  soldOut: boolean;
-  image: string;
+  soldout: boolean;
+  images: string[];
 }
 
 export function formaterPrix(prix: number): string {
@@ -25,8 +25,8 @@ export const produits: Produit[] = [
     categorie: "Pantalon",
     description: "Un essentiel intemporel pour compléter votre garde-robe.",
     nouveaute: true,
-    soldOut: false,
-    image: "/produits/article_1.jpeg",
+    soldout: false,
+    images: ["/produits/article_1.jpeg"],
   },
   {
     id: "article_2",
@@ -37,8 +37,8 @@ export const produits: Produit[] = [
     categorie: "Pantalon",
     description: "Un essentiel intemporel pour compléter votre garde-robe.",
     nouveaute: true,
-    soldOut: false,
-    image: "/produits/article_2.jpeg",
+    soldout: false,
+    images: ["/produits/article_2.jpeg"],
   },
   {
     id: "article_3",
@@ -49,8 +49,8 @@ export const produits: Produit[] = [
     categorie: "Chemise",
     description: "Un essentiel intemporel pour compléter votre garde-robe.",
     nouveaute: true,
-    soldOut: false,
-    image: "/produits/article_3.jpeg",
+    soldout: false,
+    images: ["/produits/article_3.jpeg"],
   },
   {
     id: "article_4",
@@ -61,8 +61,8 @@ export const produits: Produit[] = [
     categorie: "T-Shirt",
     description: "Un essentiel intemporel pour compléter votre garde-robe.",
     nouveaute: true,
-    soldOut: false,
-    image: "/produits/article_4.jpeg",
+    soldout: false,
+    images: ["/produits/article_4.jpeg"],
   },
   {
     id: "article_5",
@@ -73,8 +73,8 @@ export const produits: Produit[] = [
     categorie: "Pantalon",
     description: "Un essentiel intemporel pour compléter votre garde-robe.",
     nouveaute: false,
-    soldOut: false,
-    image: "/produits/article_5.jpeg",
+    soldout: false,
+    images: ["/produits/article_5.jpeg"],
   },
   {
     id: "article_6",
@@ -85,8 +85,8 @@ export const produits: Produit[] = [
     categorie: "T-Shirt",
     description: "Un essentiel intemporel pour compléter votre garde-robe.",
     nouveaute: false,
-    soldOut: false,
-    image: "/produits/article_6.jpeg",
+    soldout: false,
+    images: ["/produits/article_6.jpeg"],
   },
   {
     id: "article_7",
@@ -97,8 +97,8 @@ export const produits: Produit[] = [
     categorie: "Pantalon",
     description: "Un essentiel intemporel pour compléter votre garde-robe.",
     nouveaute: false,
-    soldOut: false,
-    image: "/produits/article_7.jpeg",
+    soldout: false,
+    images: ["/produits/article_7.jpeg"],
   },
   {
     id: "article_8",
@@ -109,8 +109,8 @@ export const produits: Produit[] = [
     categorie: "Pantalon",
     description: "Un essentiel intemporel pour compléter votre garde-robe.",
     nouveaute: false,
-    soldOut: false,
-    image: "/produits/article_8.jpeg",
+    soldout: false,
+    images: ["/produits/article_8.jpeg"],
   },
   {
     id: "article_9",
@@ -121,8 +121,8 @@ export const produits: Produit[] = [
     categorie: "Chemise",
     description: "Un essentiel intemporel pour compléter votre garde-robe.",
     nouveaute: false,
-    soldOut: false,
-    image: "/produits/article_9.jpeg",
+    soldout: false,
+    images: ["/produits/article_9.jpeg"],
   },
 ];
 
