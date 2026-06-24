@@ -1,14 +1,21 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import { Produit, formaterPrix } from "@/lib/produits";
+
+const normaliserCouleurs = (couleurs: string[]) =>
+  couleurs
+    .flatMap((couleur) => couleur.split(/[;,]/))
+    .map((couleur) => couleur.trim())
+    .filter(Boolean);
 
 export default function CarteProduit({ produit }: { produit: Produit }) {
   const imagePrincipale =
     produit.images && produit.images.length > 0
       ? produit.images[0]
       : `/produits/${produit.id}.jpeg`;
+  const couleursDisponibles = normaliserCouleurs(produit.couleurs || []);
 
   return (
     <Link href={`/boutique/${produit.id}`} className="group block">
@@ -31,7 +38,7 @@ export default function CarteProduit({ produit }: { produit: Produit }) {
           )}
           {produit.soldout && (
             <span className="bg-zinc-700 text-white text-[9px] sm:text-[10px] font-bold tracking-widest px-1.5 sm:px-2 py-0.5 sm:py-1 uppercase">
-              Épuisé
+              Ã‰puisÃ©
             </span>
           )}
         </div>
@@ -41,7 +48,7 @@ export default function CarteProduit({ produit }: { produit: Produit }) {
 
         {/* Couleurs */}
         <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 flex gap-1 flex-wrap z-10">
-          {produit.couleurs.slice(0, 3).map((couleur) => (
+          {couleursDisponibles.slice(0, 3).map((couleur) => (
             <span
               key={couleur}
               className="text-[9px] sm:text-[10px] text-white bg-black/50 backdrop-blur-sm px-1 sm:px-1.5 py-0.5 rounded"
@@ -64,3 +71,4 @@ export default function CarteProduit({ produit }: { produit: Produit }) {
     </Link>
   );
 }
+

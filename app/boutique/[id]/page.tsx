@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { use, useState, useEffect } from "react";
 import { notFound } from "next/navigation";
@@ -8,6 +8,12 @@ import { ArrowLeft, ShoppingBag, Check } from "lucide-react";
 import { formaterPrix } from "@/lib/produits";
 import { supabase } from "@/lib/supabase";
 import { usePanier } from "@/lib/panier-context";
+
+const normaliserListe = (valeurs: string[] | null | undefined) =>
+  (valeurs || [])
+    .flatMap((valeur) => valeur.split(/[;,]/))
+    .map((valeur) => valeur.trim())
+    .filter(Boolean);
 
 type Produit = {
   id: string;
@@ -55,7 +61,7 @@ export default function ProduitPage({
       }
 
       setProduit(data);
-      setCouleurChoisie(data.couleurs?.[0] ?? "");
+      setCouleurChoisie(normaliserListe(data.couleurs)[0] ?? "");
 
       // Fetch produits similaires
       const { data: sim } = await supabase
@@ -88,7 +94,7 @@ export default function ProduitPage({
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
         <p className="text-white/30 tracking-widest uppercase text-xs animate-pulse">
-          Chargement…
+          Chargementâ€¦
         </p>
       </main>
     );
@@ -99,6 +105,8 @@ export default function ProduitPage({
       ? produit.images
       : [`/produits/${produit.id}.jpeg`]; // fallback si pas d'images en BDD
 
+  const couleursDisponibles = normaliserListe(produit.couleurs);
+
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
@@ -108,7 +116,7 @@ export default function ProduitPage({
           className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-10 transition-colors w-fit"
         >
           <ArrowLeft size={15} />
-          Retour à la boutique
+          Retour Ã  la boutique
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
@@ -134,13 +142,13 @@ export default function ProduitPage({
                 )}
                 {produit.soldout && (
                   <span className="bg-zinc-700 text-white text-[10px] font-bold tracking-widest px-2.5 py-1 uppercase">
-                    Épuisé
+                    Ã‰puisÃ©
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Vignettes — affichées si plusieurs images */}
+            {/* Vignettes â€” affichÃ©es si plusieurs images */}
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {images.map((src, i) => (
@@ -195,7 +203,7 @@ export default function ProduitPage({
                 <p className="text-xs text-white/40">{couleurChoisie}</p>
               </div>
               <div className="flex gap-2 flex-wrap">
-                {produit.couleurs.map((couleur) => (
+                {couleursDisponibles.map((couleur) => (
                   <button
                     key={couleur}
                     onClick={() => setCouleurChoisie(couleur)}
@@ -223,7 +231,7 @@ export default function ProduitPage({
                       erreur ? "text-red-400" : "text-white/30"
                     }`}
                   >
-                    {erreur ? "⚠ Choisissez une taille" : "Sélectionnez une taille"}
+                    {erreur ? "âš  Choisissez une taille" : "SÃ©lectionnez une taille"}
                   </p>
                 )}
               </div>
@@ -260,11 +268,11 @@ export default function ProduitPage({
                 }`}
               >
                 {produit.soldout ? (
-                  "Épuisé"
+                  "Ã‰puisÃ©"
                 ) : ajoute ? (
                   <>
                     <Check size={18} strokeWidth={2.5} />
-                    Ajouté au panier !
+                    AjoutÃ© au panier !
                   </>
                 ) : (
                   <>
@@ -285,15 +293,15 @@ export default function ProduitPage({
             {/* Infos livraison */}
             <div className="border-t border-white/10 pt-6 space-y-2">
               <div className="flex items-center gap-3 text-sm text-white/40">
-                <span className="text-base">📦</span>
-                <span>Livraison dans toute la Côte d&apos;Ivoire</span>
+                <span className="text-base">ðŸ“¦</span>
+                <span>Livraison dans toute la CÃ´te d&apos;Ivoire</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-white/40">
-                <span className="text-base">📱</span>
-                <span>Paiement Mobile Money — Orange, Wave, MTN</span>
+                <span className="text-base">ðŸ“±</span>
+                <span>Paiement Mobile Money â€” Orange, Wave, MTN</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-white/40">
-                <span className="text-base">↩️</span>
+                <span className="text-base">â†©ï¸</span>
                 <span>Retour sous 7 jours</span>
               </div>
             </div>
@@ -306,7 +314,7 @@ export default function ProduitPage({
             <div className="flex justify-between items-end mb-10">
               <div>
                 <p className="text-white/30 text-xs tracking-[0.4em] uppercase mb-2">
-                  De la même famille
+                  De la mÃªme famille
                 </p>
                 <h2 className="text-2xl font-bold">Vous aimerez aussi</h2>
               </div>
@@ -314,7 +322,7 @@ export default function ProduitPage({
                 href="/boutique"
                 className="text-white/40 text-sm hover:text-white tracking-widest uppercase transition-colors"
               >
-                Tout voir →
+                Tout voir â†’
               </Link>
             </div>
 
@@ -361,3 +369,4 @@ export default function ProduitPage({
     </main>
   );
 }
+

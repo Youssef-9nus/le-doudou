@@ -46,7 +46,7 @@ type ChampProduit = {
 
 const nettoyerListe = (valeur: string) =>
   valeur
-    .split(",")
+    .split(/[;,]/)
     .map((item) => item.trim())
     .filter(Boolean);
 
@@ -643,4 +643,5 @@ export default function AdminPage() {
     </div>
   );
 }
+
 
