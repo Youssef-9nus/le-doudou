@@ -12,8 +12,8 @@ interface Produit {
   tailles: string[];
   description: string;
   nouveaute: boolean;
-  soldOut: boolean;
-  image: string;
+  soldout: boolean;
+  images: string[];
   stock: number;
 }
 
@@ -44,7 +44,7 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string>("");
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const login = () => {
@@ -78,10 +78,10 @@ export default function AdminPage() {
     if (data) setCommandes(data);
   };
 
-  const uploadImage = async (file: File) => {
-    setUploading(true);
+  // Upload d'une seule image -> renvoie l'URL publique
+  const uploadUneImage = async (file: File): Promise<string | null> => {
     const ext = file.name.split(".").pop();
-    const fileName = `${Date.now()}.${ext}`;
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
     const { error } = await supabase.storage
       .from("produits")
@@ -89,27 +89,65 @@ export default function AdminPage() {
 
     if (error) {
       setMessage("❌ Erreur upload : " + error.message);
-      setUploading(false);
-      return;
+      return null;
     }
 
     const { data } = supabase.storage.from("produits").getPublicUrl(fileName);
-    const publicUrl = data.publicUrl;
+    return data.publicUrl;
+  };
 
-    setFormData((prev) => ({ ...prev, image: publicUrl }));
-    setPreviewImage(publicUrl);
+  // Upload de plusieurs images sélectionnées d'un coup (galerie multi-sélection)
+  const uploadImages = async (files: FileList) => {
+    setUploading(true);
+    const urls: string[] = [];
+
+    for (const file of Array.from(files)) {
+      const url = await uploadUneImage(file);
+      if (url) urls.push(url);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      images: [...(prev.images || []), ...urls],
+    }));
+    setPreviewImages((prev) => [...prev, ...urls]);
     setUploading(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) uploadImage(file);
+    const files = e.target.files;
+    if (files && files.length > 0) uploadImages(files);
+    // reset pour pouvoir re-sélectionner les mêmes fichiers si besoin
+    e.target.value = "";
+  };
+
+  const supprimerImage = (index: number) => {
+    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+    setFormData((prev) => ({
+      ...prev,
+      images: (prev.images || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const deplacerImageEnPremier = (index: number) => {
+    setPreviewImages((prev) => {
+      const arr = [...prev];
+      const [img] = arr.splice(index, 1);
+      arr.unshift(img);
+      return arr;
+    });
+    setFormData((prev) => {
+      const arr = [...(prev.images || [])];
+      const [img] = arr.splice(index, 1);
+      arr.unshift(img);
+      return { ...prev, images: arr };
+    });
   };
 
   const ouvrirEdition = (produit: Produit) => {
     setModalProduit(produit);
     setFormData({ ...produit });
-    setPreviewImage(produit.image || "");
+    setPreviewImages(produit.images || []);
     setNouveauProduit(false);
   };
 
@@ -123,11 +161,11 @@ export default function AdminPage() {
       tailles: ["XS", "S", "M", "L", "XL"],
       description: "Un essentiel intemporel pour compléter votre garde-robe.",
       nouveaute: false,
-      soldOut: false,
-      image: "",
+      soldout: false,
+      images: [],
       stock: 0,
     });
-    setPreviewImage("");
+    setPreviewImages([]);
     setNouveauProduit(true);
     setModalProduit({} as Produit);
   };
@@ -319,12 +357,19 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {produits.map((p) => (
                 <div key={p.id} className="border border-white/10 rounded-2xl overflow-hidden">
-                  {p.image && (
-                    <img
-                      src={p.image}
-                      alt={p.nom}
-                      className="w-full h-40 object-cover"
-                    />
+                  {p.images && p.images.length > 0 && (
+                    <div className="relative">
+                      <img
+                        src={p.images[0]}
+                        alt={p.nom}
+                        className="w-full h-40 object-cover"
+                      />
+                      {p.images.length > 1 && (
+                        <span className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full">
+                          +{p.images.length - 1} photo{p.images.length > 2 ? "s" : ""}
+                        </span>
+                      )}
+                    </div>
                   )}
                   <div className="p-4 space-y-2">
                     <div className="flex justify-between items-start">
@@ -336,7 +381,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex gap-2 text-xs">
                       {p.nouveaute && <span className="bg-white/10 text-white/60 px-2 py-0.5 rounded-full">Nouveauté</span>}
-                      {p.soldOut && <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">Sold Out</span>}
+                      {p.soldout && <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">Sold Out</span>}
                     </div>
                     <div className="flex gap-2 pt-1">
                       <button
@@ -367,24 +412,57 @@ export default function AdminPage() {
               {nouveauProduit ? "Nouveau produit" : "Modifier le produit"}
             </h2>
 
-            {/* Upload photo */}
+            {/* Upload photos (plusieurs) */}
             <div>
-              <label className="text-white/40 text-xs tracking-widest uppercase block mb-2">Photo du produit</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-white/40 text-xs tracking-widest uppercase">Photos du produit</label>
+                <span className="text-white/30 text-xs">{previewImages.length} photo{previewImages.length === 1 ? "" : "s"}</span>
+              </div>
+
+              {previewImages.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {previewImages.map((src, i) => (
+                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden group border border-white/10">
+                      <img src={src} alt={`photo ${i + 1}`} className="w-full h-full object-cover" />
+                      {i === 0 && (
+                        <span className="absolute top-1 left-1 bg-white text-black text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">
+                          Principale
+                        </span>
+                      )}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        {i !== 0 && (
+                          <button
+                            type="button"
+                            onClick={() => deplacerImageEnPremier(i)}
+                            className="text-white text-[10px] underline"
+                          >
+                            Mettre en avant
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => supprimerImage(i)}
+                          className="text-red-400 text-[10px] underline"
+                        >
+                          Retirer
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-40 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-colors overflow-hidden relative"
+                className="w-full h-28 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-colors relative"
               >
-                {previewImage ? (
-                  <img src={previewImage} alt="preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-center">
-                    <p className="text-white/40 text-2xl mb-2">📷</p>
-                    <p className="text-white/30 text-xs">Appuyer pour choisir une photo</p>
-                    <p className="text-white/20 text-xs mt-1">Galerie ou appareil photo</p>
-                  </div>
-                )}
+                <div className="text-center">
+                  <p className="text-white/40 text-2xl mb-1">📷</p>
+                  <p className="text-white/30 text-xs">Ajouter une ou plusieurs photos</p>
+                  <p className="text-white/20 text-xs mt-1">Galerie ou appareil photo</p>
+                </div>
                 {uploading && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
                     <p className="text-white text-sm">Upload en cours...</p>
                   </div>
                 )}
@@ -393,17 +471,10 @@ export default function AdminPage() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileChange}
                 className="hidden"
               />
-              {previewImage && (
-                <button
-                  onClick={() => { setPreviewImage(""); setFormData(prev => ({ ...prev, image: "" })); }}
-                  className="mt-2 text-white/30 text-xs hover:text-white/60 transition-colors"
-                >
-                  Supprimer la photo
-                </button>
-              )}
             </div>
 
             {[
@@ -443,8 +514,8 @@ export default function AdminPage() {
               <label className="flex items-center gap-2 text-sm text-white/60 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={formData.soldOut || false}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, soldOut: e.target.checked }))}
+                  checked={formData.soldout || false}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, soldout: e.target.checked }))}
                 />
                 Sold Out
               </label>

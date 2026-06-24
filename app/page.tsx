@@ -15,7 +15,7 @@ interface Produit {
   description: string;
   nouveaute: boolean;
   soldOut: boolean;
-  image: string;
+  images: string[];
   stock: number;
 }
 

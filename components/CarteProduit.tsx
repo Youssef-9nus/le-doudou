@@ -9,13 +9,15 @@ export default function CarteProduit({ produit }: { produit: Produit }) {
     <Link href={`/boutique/${produit.id}`} className="group block">
       {/* Image */}
       <div className="relative aspect-[3/4] bg-zinc-900 rounded-lg overflow-hidden mb-2 sm:mb-4">
-        <Image
-          src={produit.image}
-          alt={produit.nom}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-          sizes="(max-width: 768px) 50vw, 25vw"
-        />
+        {produit.images?.[0] && (
+          <Image
+            src={produit.images[0]}
+            alt={produit.nom}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 50vw, 25vw"
+          />
+        )}
 
         {/* Badges */}
         <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-2 z-10">
