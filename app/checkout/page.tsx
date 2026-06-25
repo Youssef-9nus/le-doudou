@@ -1,23 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowLeft, MessageCircle } from "lucide-react";
 import { usePanier } from "@/lib/panier-context";
 import { formaterPrix } from "@/lib/produits";
 import { supabase } from "@/lib/supabase";
 
-type ModePaiement = "orange" | "wave" | "mtn";
-
-const modesPaiement: { id: ModePaiement; label: string; numero: string; couleur: string }[] = [
-  { id: "orange", label: "Orange Money", numero: "0777697233", couleur: "bg-orange-500" },
-  { id: "wave", label: "Wave", numero: "0777697233", couleur: "bg-blue-500" },
-  { id: "mtn", label: "MTN MoMo", numero: "0777697233", couleur: "bg-yellow-400" },
-];
+const WHATSAPP_NUMBER = "2250777697233";
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const { articles, total, nombreArticles, viderPanier } = usePanier();
 
   const [form, setForm] = useState({
@@ -25,7 +17,6 @@ export default function CheckoutPage() {
     telephone: "",
     adresse: "",
     commune: "",
-    paiement: "" as ModePaiement | "",
   });
 
   const [erreurs, setErreurs] = useState<Record<string, string>>({});
@@ -48,13 +39,33 @@ export default function CheckoutPage() {
   const valider = () => {
     const e: Record<string, string> = {};
     if (!form.nom.trim()) e.nom = "Votre nom est requis";
-    if (!form.telephone.trim()) e.telephone = "Votre numéro est requis";
+    if (!form.telephone.trim()) e.telephone = "Votre numero est requis";
     else if (!/^0[0-9]{9}$/.test(form.telephone.replace(/\s/g, "")))
-      e.telephone = "Numéro invalide (ex: 0700000000)";
+      e.telephone = "Numero invalide (ex: 0700000000)";
     if (!form.adresse.trim()) e.adresse = "Votre adresse est requise";
     if (!form.commune.trim()) e.commune = "Votre commune est requise";
-    if (!form.paiement) e.paiement = "Choisissez un mode de paiement";
     return e;
+  };
+
+  const creerMessageWhatsApp = () => {
+    const lignesProduits = articles
+      .map(
+        (article, index) =>
+          `${index + 1}. ${article.produit.nom} - ${article.couleur} - ${article.taille} - x${article.quantite} - ${formaterPrix(article.produit.prix * article.quantite)}`
+      )
+      .join("\n");
+
+    return [
+      "Bonjour Le Doudou, je veux passer cette commande :",
+      "",
+      lignesProduits,
+      "",
+      `Total : ${formaterPrix(total)}`,
+      "",
+      `Nom : ${form.nom}`,
+      `Telephone : ${form.telephone}`,
+      `Adresse : ${form.adresse}, ${form.commune}`,
+    ].join("\n");
   };
 
   const handleSubmit = async () => {
@@ -63,37 +74,34 @@ export default function CheckoutPage() {
       setErreurs(e);
       return;
     }
+
     setLoading(true);
 
-    // Enregistrer la commande dans Supabase
     const { error } = await supabase.from("commandes").insert([
       {
         client_nom: form.nom,
         client_telephone: form.telephone,
         client_adresse: `${form.adresse}, ${form.commune}`,
-        produits: articles.map((a) => ({
-          id: a.produit.id,
-          nom: a.produit.nom,
-          prix: a.produit.prix,
-          couleur: a.couleur,
-          taille: a.taille,
-          quantite: a.quantite,
+        produits: articles.map((article) => ({
+          id: article.produit.id,
+          nom: article.produit.nom,
+          prix: article.produit.prix,
+          couleur: article.couleur,
+          taille: article.taille,
+          quantite: article.quantite,
         })),
-        total: total,
+        total,
         statut: "en_attente",
       },
     ]);
 
     if (error) {
       console.error("Erreur commande:", error);
-      setLoading(false);
-      return;
     }
 
+    const message = creerMessageWhatsApp();
     viderPanier();
-    router.push(
-      `/confirmation?nom=${encodeURIComponent(form.nom)}&paiement=${form.paiement}&total=${total}`
-    );
+    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   };
 
   const handleChange = (champ: string, valeur: string) => {
@@ -118,7 +126,6 @@ export default function CheckoutPage() {
 
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
           <div className="flex-1 flex flex-col gap-8">
-
             <section>
               <p className="text-xs tracking-[0.4em] uppercase text-white/30 mb-5">Vos informations</p>
               <div className="flex flex-col gap-4">
@@ -135,7 +142,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs tracking-widest uppercase text-white/50 mb-2 block">Numéro de téléphone</label>
+                  <label className="text-xs tracking-widest uppercase text-white/50 mb-2 block">Numero de telephone</label>
                   <input
                     type="tel"
                     value={form.telephone}
@@ -177,40 +184,25 @@ export default function CheckoutPage() {
               </div>
             </section>
 
-            <section>
-              <p className="text-xs tracking-[0.4em] uppercase text-white/30 mb-5">Mode de paiement</p>
-              <div className="flex flex-col gap-3">
-                {modesPaiement.map((mode) => (
-                  <button
-                    key={mode.id}
-                    onClick={() => handleChange("paiement", mode.id)}
-                    className={`flex items-center gap-4 px-4 py-4 rounded-xl border transition-all duration-200 text-left ${form.paiement === mode.id ? "border-white bg-white/5" : erreurs.paiement ? "border-red-500/40 hover:border-white/30" : "border-white/10 hover:border-white/30"}`}
-                  >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${form.paiement === mode.id ? "border-white" : "border-white/20"}`}>
-                      {form.paiement === mode.id && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
-                    </div>
-                    <div className={`w-8 h-8 rounded-full ${mode.couleur} flex-shrink-0`} />
-                    <div>
-                      <p className="text-sm font-medium text-white">{mode.label}</p>
-                      <p className="text-xs text-white/30 mt-0.5">Numéro : {mode.numero}</p>
-                    </div>
-                  </button>
-                ))}
-                {erreurs.paiement && <p className="text-red-400 text-xs mt-1">{erreurs.paiement}</p>}
-              </div>
+            <section className="border border-white/10 rounded-xl p-5 bg-zinc-950">
+              <p className="text-xs tracking-[0.4em] uppercase text-white/30 mb-3">Commande WhatsApp</p>
+              <p className="text-white/50 text-sm leading-relaxed">
+                Aucun paiement n&apos;est effectue sur le site. Apres validation,
+                votre commande sera envoyee sur WhatsApp pour finaliser les details avec Le Doudou.
+              </p>
             </section>
           </div>
 
           <div className="lg:w-80">
             <div className="border border-white/10 rounded-xl p-6 sticky top-24">
-              <h2 className="font-semibold text-lg mb-6 tracking-wide">Récapitulatif</h2>
+              <h2 className="font-semibold text-lg mb-6 tracking-wide">Recapitulatif</h2>
 
               <div className="flex flex-col gap-3 mb-6">
                 {articles.map((article) => (
                   <div key={`${article.produit.id}-${article.couleur}-${article.taille}`} className="flex justify-between items-start text-sm">
                     <div className="flex-1 pr-3">
                       <p className="text-white/80 leading-tight line-clamp-1">{article.produit.nom}</p>
-                      <p className="text-white/30 text-xs mt-0.5">{article.couleur} · {article.taille} · ×{article.quantite}</p>
+                      <p className="text-white/30 text-xs mt-0.5">{article.couleur} - {article.taille} - x{article.quantite}</p>
                     </div>
                     <p className="text-white/70 whitespace-nowrap">{formaterPrix(article.produit.prix * article.quantite)}</p>
                   </div>
@@ -224,10 +216,10 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-white/50">
                   <span>Livraison</span>
-                  <span className="text-green-400">Gratuite</span>
+                  <span className="text-green-400">A confirmer</span>
                 </div>
                 <div className="border-t border-white/10 pt-3 flex justify-between font-semibold text-base">
-                  <span>Total</span>
+                  <span>Total articles</span>
                   <span>{formaterPrix(total)}</span>
                 </div>
               </div>
@@ -235,7 +227,7 @@ export default function CheckoutPage() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className={`w-full py-4 font-semibold tracking-widest uppercase text-sm rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${loading ? "bg-white/40 text-black cursor-wait" : "bg-white text-black hover:bg-white/90 active:scale-[0.99]"}`}
+                className={`w-full py-4 font-semibold tracking-widest uppercase text-sm rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${loading ? "bg-white/40 text-black cursor-wait" : "bg-green-600 text-white hover:bg-green-500 active:scale-[0.99]"}`}
               >
                 {loading ? (
                   <>
@@ -243,17 +235,17 @@ export default function CheckoutPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                     </svg>
-                    Traitement...
+                    Ouverture WhatsApp...
                   </>
                 ) : (
                   <>
-                    <CheckCircle size={16} />
-                    Confirmer la commande
+                    <MessageCircle size={16} />
+                    Commander via WhatsApp
                   </>
                 )}
               </button>
 
-              <p className="text-white/20 text-xs text-center mt-4">Paiement sécurisé · Mobile Money</p>
+              <p className="text-white/20 text-xs text-center mt-4">Aucun paiement sur le site</p>
             </div>
           </div>
         </div>

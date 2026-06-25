@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { PanierProvider } from "@/lib/panier-context";
+import VisitTracker from "@/components/VisitTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-black">
         <PanierProvider>
+          <VisitTracker />
           <Navbar />
           <div className="flex-1">
             {children}

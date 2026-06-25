@@ -65,6 +65,7 @@ export default function AdminPage() {
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [couleurInput, setCouleurInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const login = () => {
@@ -177,6 +178,27 @@ export default function AdminPage() {
     }));
   };
 
+  const ajouterCouleur = () => {
+    const couleur = couleurInput.trim();
+    if (!couleur) return;
+
+    setFormData((prev) => {
+      const couleursActuelles = prev.couleurs || [];
+      if (couleursActuelles.some((item) => item.toLowerCase() === couleur.toLowerCase())) {
+        return prev;
+      }
+      return { ...prev, couleurs: [...couleursActuelles, couleur] };
+    });
+    setCouleurInput("");
+  };
+
+  const retirerCouleur = (couleur: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      couleurs: (prev.couleurs || []).filter((item) => item !== couleur),
+    }));
+  };
+
   const modifierTailles = (valeur: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -188,6 +210,7 @@ export default function AdminPage() {
     setModalProduit(produit);
     setFormData({ ...produit });
     setPreviewImages(produit.images || []);
+    setCouleurInput("");
     setNouveauProduit(false);
   };
 
@@ -206,6 +229,7 @@ export default function AdminPage() {
       stock: 0,
     });
     setPreviewImages([]);
+    setCouleurInput("");
     setNouveauProduit(true);
     setModalProduit({} as Produit);
   };
@@ -446,6 +470,16 @@ export default function AdminPage() {
                       {p.nouveaute && <span className="bg-white/10 text-white/60 px-2 py-0.5 rounded-full">NouveautÃ©</span>}
                       {p.soldout && <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">Sold Out</span>}
                     </div>
+                    <div className="flex gap-1.5 flex-wrap pt-1">
+                      {(p.couleurs || []).slice(0, 5).map((couleur) => (
+                        <span key={couleur} className="bg-white/5 border border-white/10 text-white/50 text-[11px] px-2 py-0.5 rounded-full">
+                          {couleur}
+                        </span>
+                      ))}
+                      {(p.couleurs || []).length === 0 && (
+                        <span className="text-white/25 text-xs">Aucune couleur renseignÃ©e</span>
+                      )}
+                    </div>
                     <div className="flex gap-2 pt-1">
                       <button
                         onClick={() => ouvrirEdition(p)}
@@ -550,6 +584,42 @@ export default function AdminPage() {
               <label className="text-white/40 text-xs tracking-widest uppercase block mb-1">
                 Couleurs disponibles
               </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={couleurInput}
+                  onChange={(e) => setCouleurInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      ajouterCouleur();
+                    }
+                  }}
+                  placeholder="Ex : Noir"
+                  className="flex-1 bg-white/5 border border-white/10 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:border-white/30 placeholder:text-white/20"
+                />
+                <button
+                  type="button"
+                  onClick={ajouterCouleur}
+                  className="bg-white text-black px-4 py-2 rounded-xl text-xs font-semibold tracking-widest uppercase hover:bg-white/90 transition-colors"
+                >
+                  Ajouter
+                </button>
+              </div>
+              {(formData.couleurs || []).length > 0 && (
+                <div className="flex gap-2 flex-wrap mb-2">
+                  {(formData.couleurs || []).map((couleur) => (
+                    <button
+                      key={couleur}
+                      type="button"
+                      onClick={() => retirerCouleur(couleur)}
+                      className="bg-white/10 border border-white/10 text-white/70 text-xs px-3 py-1 rounded-full hover:border-red-500/50 hover:text-red-300 transition-colors"
+                    >
+                      {couleur} x
+                    </button>
+                  ))}
+                </div>
+              )}
               <input
                 type="text"
                 value={(formData.couleurs || []).join(", ")}

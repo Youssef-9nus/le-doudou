@@ -2,19 +2,48 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ShoppingBag, Menu, X } from "lucide-react";
 import { usePanier } from "@/lib/panier-context";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function Navbar() {
+  const router = useRouter();
   const { nombreArticles } = usePanier();
   const [menuOuvert, setMenuOuvert] = useState(false);
+  const clicsLogoRef = useRef(0);
+  const resetLogoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigationLogoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const gererClicLogo = () => {
+    clicsLogoRef.current += 1;
+
+    if (resetLogoRef.current) clearTimeout(resetLogoRef.current);
+    if (navigationLogoRef.current) clearTimeout(navigationLogoRef.current);
+
+    if (clicsLogoRef.current >= 5) {
+      clicsLogoRef.current = 0;
+      router.push("/admin-restreint");
+      return;
+    }
+
+    resetLogoRef.current = setTimeout(() => {
+      clicsLogoRef.current = 0;
+    }, 900);
+
+    navigationLogoRef.current = setTimeout(() => {
+      if (clicsLogoRef.current === 1) {
+        clicsLogoRef.current = 0;
+        router.push("/");
+      }
+    }, 300);
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <button type="button" onClick={gererClicLogo} className="flex items-center">
           <Image
             src="/logo.png"
             alt="Le Doudou"
@@ -23,7 +52,7 @@ export default function Navbar() {
             className="object-contain"
             priority
           />
-        </Link>
+        </button>
 
         {/* Nav desktop */}
         <nav className="hidden md:flex items-center gap-8">

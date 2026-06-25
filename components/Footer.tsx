@@ -58,10 +58,10 @@ export default function Footer() {
 
         {/* Copyright */}
         <p className="text-white/20 text-xs tracking-[0.3em] uppercase text-center">
-          © 2025 Le Doudou — Abidjan, Côte d&apos;Ivoire
+          © 2025 Le Doudou — Abidjan, Côte d&apos;Ivoire · En collaboration avec Afriweb · Site réalisé par Afriweb
         </p>
         <p className="text-white/20 text-xs tracking-[0.2em] uppercase text-center">
-          Livraison dans toute la Côte d&apos;Ivoire · Paiement Mobile Money
+          Livraison dans toute la Côte d&apos;Ivoire · Commande via WhatsApp
         </p>
 
         {/* Lien admin discret */}
